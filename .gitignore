@@ -4,3 +4,7 @@
 .dox
 .pro
 Makefile
+
+*.pro
+
+*.user
