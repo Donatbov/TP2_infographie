@@ -1,10 +1,7 @@
-.idea
-.Images
-.xml
-.dox
-.pro
+.idea/
+Images/
+*.xml
+*.dox
 Makefile
-
 *.pro
-
 *.user
