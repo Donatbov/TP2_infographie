@@ -134,20 +134,34 @@ namespace rt {
       return result;
     }
 
-      /// Calcule l'illumination de l'objet obj au point p, sachant que l'observateur est le rayon ray.
-      Color illumination( const Ray& ray, GraphicalObject* obj, Point3 p ){
-          Color result = Color( 0.0, 0.0, 0.0 );
+    /// Calcule l'illumination de l'objet obj au point p, sachant que l'observateur est le rayon ray.
+    Color illumination( const Ray& ray, GraphicalObject* obj, Point3 p ){
+        Color result = Color( 0.0, 0.0, 0.0 );
 
-          for(auto& l : ptrScene->myLights){    // pour chaque source de lumiere, on calcule son coefficient de diffusion
-              Real coefDiff = l->direction(p).dot(obj->getNormal(p));
-              if (coefDiff < 0)
-                  coefDiff = 0;
-              result += coefDiff*obj->getMaterial(p).diffuse*l->color(p);
-          }
+        for(auto& l : ptrScene->myLights){    // pour chaque source de lumiere, on calcule le coefficient de diffusion associé
+            Real coeffDiff = l->direction(p).dot(obj->getNormal(p));
+            if (coeffDiff < 0)
+                coeffDiff = 0;
+            result += coeffDiff*obj->getMaterial(p).diffuse*l->color(p);
 
-          result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
-          return result;
-      }
+            // ainsi que la couleur spéculaire associée
+            Vector3 W = reflect(ray.direction, obj->getNormal(p));
+            Real cosBeta = l->direction(p).dot(W);
+            if(cosBeta >= 0){
+                Real coeffSpec = powf(cosBeta, obj->getMaterial(p).shinyness);
+                result += coeffSpec*obj->getMaterial(p).specular*l->color(p);
+            }
+        }
+
+        result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
+        return result;
+    }
+
+    /// Calcule le vecteur réfléchi à W selon la normale N.
+    Vector3 reflect( const Vector3& W, Vector3 N ) const{
+        return W -2* W.dot(N) * N;
+    }
+
   };
 
 
