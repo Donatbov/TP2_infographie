@@ -2,6 +2,7 @@
 Images/
 *.xml
 *.dox
-Makefile
 *.pro
 *.user
+Makefile
+CMakeLists.txt
