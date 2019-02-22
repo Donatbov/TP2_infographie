@@ -82,8 +82,20 @@ namespace rt {
     rayIntersection( const Ray& ray,
                      GraphicalObject*& object, Point3& p )
     {
-      object = 0;
-      return 1.0f;
+      object = nullptr;
+      Real distance = std::numeric_limits<Real>::max();
+      // On fait une boucle sur tout les objets de scène
+        for (auto & o : this->myObjects ) {
+            if (o->rayIntersection(ray, p) <= 0){ // si le rayon intersecte l'objet
+                // On calcule la distance entre l'origine du rayon et le point d'intersection avec l'objet
+                Real currentDistance = (ray.origin - p).dot(ray.origin - p);
+                if (currentDistance < distance ) {
+                    distance = currentDistance;
+                    object = o;
+                }
+            }
+        }
+       return distance != std::numeric_limits<Real>::max() ? -distance : distance;
     }
 
   private:

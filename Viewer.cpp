@@ -38,7 +38,7 @@ rt::Viewer::init()
   setKeyDescription(Qt::SHIFT+Qt::Key_D, "Decreases the max depth of ray-tracing algorithm");
   
   // Opens help window
-  help();
+  //help();
 
   // To move lights around
   setMouseTracking(true);
@@ -73,12 +73,13 @@ rt::Viewer::keyPressEvent(QKeyEvent *e)
       Vector3 dirLL( dir );
       camera()->convertClickToLine( QPoint( w, h ), orig, dir );
       Vector3 dirLR( dir );
+      // Paramètre le renderer, puis le lance, et sauvegarde l'image.
       renderer.setViewBox( origin, dirUL, dirUR, dirLL, dirLR );
       if ( modifiers == Qt::ShiftModifier ) { w /= 2; h /= 2; }
       else if ( modifiers == Qt::NoModifier ) { w /= 8; h /= 8; }
       Image2D<Color> image( w, h );
       renderer.setResolution( image.w(), image.h() );
-     renderer.render( image, maxDepth );
+      renderer.render( image, maxDepth );
       ofstream output( "output.ppm" );
       Image2DWriter<Color>::write( image, output, true );
       output.close();

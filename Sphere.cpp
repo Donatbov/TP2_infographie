@@ -91,6 +91,30 @@ rt::Sphere::getMaterial( Point3 /* p */ )
 rt::Real
 rt::Sphere::rayIntersection( const Ray& ray, Point3& p )
 {
-  // TO DO
-  return 1.0f;
+    // On teste si le rayon intersecte la sphere (aka distance centre <= rayon)
+    Real DistanceCentreCarre = ((ray.origin-this->center) - ((ray.origin-this->center).dot(ray.direction)*ray.direction)).dot ((ray.origin-this->center) - ((ray.origin-this->center).dot(ray.direction)*ray.direction));
+    Real distanceBoule = DistanceCentreCarre - this->radius * this->radius;
+
+    if (distanceBoule <= 0){    // si on est dans la sphere, on calcule les points d'intersection
+        float delta = 4*(ray.direction.dot(ray.origin - this->center))*(ray.direction.dot(ray.origin - this->center)) - 4*(((ray.origin-this->center).dot(ray.origin-this->center))-(this->radius*this->radius));
+        Real sol1 = (-2*ray.direction.dot(ray.origin - this->center) - (float)sqrt(delta))/2;
+        Real sol2 = (-2*ray.direction.dot(ray.origin - this->center) + (float)sqrt(delta))/2;
+
+        // On ne garde que les solutions positives, et a fortiori la plus petite
+        Real sol = 0xf;
+        if (sol1 >= 0 && sol1 < sol2){
+            sol = sol1;
+            // On retourne le point associé à l'intersection
+            p = ray.origin + sol * ray.direction;
+        } else if (sol2 >= 0 && sol2 < sol1){
+            sol = sol2;
+            // On retourne le point associé à l'intersection
+            p = ray.origin + sol * ray.direction;
+        } else{
+            distanceBoule -= distanceBoule; // en fait ya pas d'inetersection
+        }
+    }
+
+
+  return distanceBoule;
 }
