@@ -30,9 +30,9 @@ namespace rt {
     std::vector< GraphicalObject* > myObjects;
 
     /// Default constructor. Nothing to do.
-    Scene() {}
+    Scene() = default;
 
-    /// Destructor. Frees objects.
+      /// Destructor. Frees objects.
     ~Scene() 
     {
       for ( Light* light : myLights )
@@ -89,6 +89,7 @@ namespace rt {
             if (o->rayIntersection(ray, p) <= 0){ // si le rayon intersecte l'objet
                 // On calcule la distance entre l'origine du rayon et le point d'intersection avec l'objet
                 Real currentDistance = (ray.origin - p).dot(ray.origin - p);
+                // si cette distance est plus courte que la précédente, l'objet courant devient l'objet intersecté
                 if (currentDistance < distance ) {
                     distance = currentDistance;
                     object = o;

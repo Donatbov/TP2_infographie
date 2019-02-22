@@ -101,7 +101,7 @@ rt::Sphere::rayIntersection( const Ray& ray, Point3& p )
         Real sol2 = (-2*ray.direction.dot(ray.origin - this->center) + (float)sqrt(delta))/2;
 
         // On ne garde que les solutions positives, et a fortiori la plus petite
-        Real sol = 0xf;
+        Real sol;
         if (sol1 >= 0 && sol1 < sol2){
             sol = sol1;
             // On retourne le point associé à l'intersection
@@ -111,7 +111,7 @@ rt::Sphere::rayIntersection( const Ray& ray, Point3& p )
             // On retourne le point associé à l'intersection
             p = ray.origin + sol * ray.direction;
         } else{
-            distanceBoule -= distanceBoule; // en fait ya pas d'inetersection
+            distanceBoule -= distanceBoule; // cas ou les deux solutions sont négatives mais ou il n'y a pas d'intersection (boule avant l'origine du rayon)
         }
     }
 
