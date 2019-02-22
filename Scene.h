@@ -85,7 +85,7 @@ namespace rt {
       object = nullptr;
       Real distance = std::numeric_limits<Real>::max();
       // On fait une boucle sur tout les objets de scène
-        for (auto & o : this->myObjects ) {
+        for (auto& o : this->myObjects ) {
             if (o->rayIntersection(ray, p) <= 0){ // si le rayon intersecte l'objet
                 // On calcule la distance entre l'origine du rayon et le point d'intersection avec l'objet
                 Real currentDistance = (ray.origin - p).dot(ray.origin - p);

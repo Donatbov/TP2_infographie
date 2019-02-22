@@ -44,7 +44,7 @@ namespace rt {
            << " " << (int)(fraction*100)<<"/100\r";
     output.flush();
   }
-  
+
   /// This structure takes care of rendering a scene.
   struct Renderer {
 
@@ -71,8 +71,8 @@ namespace rt {
     Renderer() : ptrScene( 0 ) {}
     Renderer( Scene& scene ) : ptrScene( &scene ) {}
     void setScene( rt::Scene& aScene ) { ptrScene = &aScene; }
-    
-    void setViewBox( Point3 origin, 
+
+    void setViewBox( Point3 origin,
                      Vector3 dirUL, Vector3 dirUR, Vector3 dirLL, Vector3 dirLR )
     {
       myOrigin = origin;
@@ -94,7 +94,7 @@ namespace rt {
     {
       std::cout << "Rendering into image ... might take a while." << std::endl;
       image = Image2D<Color>( myWidth, myHeight );
-      for ( int y = 0; y < myHeight; ++y ) 
+      for ( int y = 0; y < myHeight; ++y )
         {
           Real    ty   = (Real) y / (Real)(myHeight-1);
           progressBar( std::cout, ty, 1.0 );
@@ -102,7 +102,7 @@ namespace rt {
           Vector3 dirR = (1.0f - ty) * myDirUR + ty * myDirLR;
           dirL        /= dirL.norm();
           dirR        /= dirR.norm();
-          for ( int x = 0; x < myWidth; ++x ) 
+          for ( int x = 0; x < myWidth; ++x )
             {
               Real    tx   = (Real) x / (Real)(myWidth-1);
               Vector3 dir  = (1.0f - tx) * dirL + tx * dirR;
@@ -120,7 +120,7 @@ namespace rt {
     Color trace( const Ray& ray )
     {
       assert( ptrScene != 0 );
-      Color result = Color( 0.0, 0.0, 0.0 );
+      Color result;
       GraphicalObject* obj_i = 0; // pointer to intersected object
       Point3           p_i;       // point of intersection
 
@@ -128,11 +128,29 @@ namespace rt {
       Real ri = ptrScene->rayIntersection( ray, obj_i, p_i );
       // Nothing was intersected
       if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
-      result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
+      // Something was intersected
+      //result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
+      result = illumination(ray, obj_i, p_i);
       return result;
     }
 
+      /// Calcule l'illumination de l'objet obj au point p, sachant que l'observateur est le rayon ray.
+      Color illumination( const Ray& ray, GraphicalObject* obj, Point3 p ){
+          Color result = Color( 0.0, 0.0, 0.0 );
+
+          for(auto& l : ptrScene->myLights){    // pour chaque source de lumiere, on calcule son coefficient de diffusion
+              Real coefDiff = l->direction(p).dot(obj->getNormal(p));
+              if (coefDiff < 0)
+                  coefDiff = 0;
+              result += coefDiff*obj->getMaterial(p).diffuse*l->color(p);
+          }
+
+          result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
+          return result;
+      }
   };
+
+
 
 } // namespace rt
 
