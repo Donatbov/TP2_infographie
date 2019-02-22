@@ -4,5 +4,6 @@ Images/
 *.dox
 *.pro
 *.user
+*.o
 Makefile
 CMakeLists.txt
