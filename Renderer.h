@@ -128,7 +128,8 @@ namespace rt {
       Real ri = ptrScene->rayIntersection( ray, obj_i, p_i );
       // Nothing was intersected
       if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
-      return Color( 1.0, 1.0, 1.0 );
+      result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
+      return result;
     }
 
   };
