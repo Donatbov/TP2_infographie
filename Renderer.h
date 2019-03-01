@@ -138,7 +138,9 @@ namespace rt {
     Color illumination( const Ray& ray, GraphicalObject* obj, Point3 p ){
         Color result = Color( 0.0, 0.0, 0.0 );
 
-        for(auto& l : ptrScene->myLights){    // pour chaque source de lumiere, on calcule le coefficient de diffusion associé
+        for(auto& l : ptrScene->myLights){    // Pour chaque source de lumiere
+
+            // On calcule le coefficient de diffusion associé
             Real coeffDiff = l->direction(p).dot(obj->getNormal(p));
             if (coeffDiff < 0)
                 coeffDiff = 0;
@@ -152,8 +154,8 @@ namespace rt {
                 result += coeffSpec*obj->getMaterial(p).specular*l->color(p);
             }
         }
-
         result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
+
         return result;
     }
 

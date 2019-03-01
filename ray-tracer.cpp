@@ -33,7 +33,7 @@ int main(int argc, char** argv)
   Sphere* sphere2 = new Sphere( Point3( 0, 4, 0), 1.0, Material::emerald() );
   scene.addObject( sphere1 );
   scene.addObject( sphere2 );
-  
+
   // Instantiate the viewer.
   Viewer viewer;
   // Give a name

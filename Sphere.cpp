@@ -91,28 +91,34 @@ rt::Sphere::getMaterial( Point3 /* p */ )
 rt::Real
 rt::Sphere::rayIntersection( const Ray& ray, Point3& p )
 {
-    // On teste si le rayon intersecte la sphere (aka distance centre <= rayon)
-    Real DistanceCentreCarre = ((ray.origin-this->center) - ((ray.origin-this->center).dot(ray.direction)*ray.direction)).dot ((ray.origin-this->center) - ((ray.origin-this->center).dot(ray.direction)*ray.direction));
-    Real distanceBoule = DistanceCentreCarre - this->radius * this->radius;
+    // On teste si le rayon lumineux intersecte la sphere (aka distance centre <= rayon)
+    Vector3 CenterClosestPoint = (ray.origin-this->center) - (ray.origin-this->center).dot(ray.direction)*ray.direction;
+    Real distanceCentreAuCarre = CenterClosestPoint.dot(CenterClosestPoint);
+    Real distanceBoule = distanceCentreAuCarre - this->radius * this->radius;
 
-    if (distanceBoule <= 0){    // si on est dans la sphere, on calcule les points d'intersection
-        float delta = 4*(ray.direction.dot(ray.origin - this->center))*(ray.direction.dot(ray.origin - this->center)) - 4*(((ray.origin-this->center).dot(ray.origin-this->center))-(this->radius*this->radius));
+    if (distanceBoule <= 0){    // si on est dans la sphere, on calcule les points d'intersections
+        Real delta  = 4*(ray.direction.dot(ray.origin-this->center) * ray.direction.dot(ray.origin-this->center)) - 4*((ray.origin-this->center).dot(ray.origin-this->center) - this->radius * this->radius);
         Real sol1 = (-2*ray.direction.dot(ray.origin - this->center) - (float)sqrt(delta))/2;
         Real sol2 = (-2*ray.direction.dot(ray.origin - this->center) + (float)sqrt(delta))/2;
 
-        // On ne garde que les solutions positives, et a fortiori la plus petite
+        // On ne veut garder qu'un seul point d'intersection
         Real sol;
-        if (sol1 >= 0 && sol1 < sol2){
-            sol = sol1;
-            // On retourne le point associé à l'intersection
-            p = ray.origin + sol * ray.direction;
-        } else if (sol2 >= 0 && sol2 < sol1){
-            sol = sol2;
-            // On retourne le point associé à l'intersection
-            p = ray.origin + sol * ray.direction;
-        } else{
-            distanceBoule -= distanceBoule; // cas ou les deux solutions sont négatives mais ou il n'y a pas d'intersection (boule avant l'origine du rayon)
+        if (sol1 >= 0 && sol2 >= 0){    // cas 1 : l'objet est devant le rayon
+            // on garde la solution la plus proche
+            sol = std::min(sol1, sol2);
+        } else if(sol1 < 0 && sol2 <0){ // cas 2 : l'objet est derriere le rayon
+            // il n'y a pas d'intersections
+            distanceBoule = -distanceBoule;
+            sol = 0; // le point le plus proche devient alors l'origine du rayon
+        } else{                         // cas 3 : les 2 sol sont de signe différents, le rayon est dans la boule
+            // on garde la solution positive
+            sol = std::max(sol1, sol2);
         }
+        // On construit le point d'intersection entre le rayon et l'objet
+        p = ray.origin + sol * ray.direction;
+
+    } else {    // si il 'y a pas d'intersection, on renvoie le point le plus proche de l'objet
+        p = this->center - CenterClosestPoint;
     }
 
 
