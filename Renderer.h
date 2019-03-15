@@ -9,6 +9,7 @@
 #include "Color.h"
 #include "Image2D.h"
 #include "Ray.h"
+#include "Background.h"
 
 /// Namespace RayTracer
 namespace rt {
@@ -68,6 +69,8 @@ namespace rt {
     int myWidth;
     int myHeight;
 
+    Background* ptrBackground;
+
     Renderer() : ptrScene( 0 ) {}
     Renderer( Scene& scene ) : ptrScene( &scene ) {}
     void setScene( rt::Scene& aScene ) { ptrScene = &aScene; }
@@ -114,6 +117,25 @@ namespace rt {
       std::cout << "Done." << std::endl;
     }
 
+    // Affiche les sources de lumières avant d'appeler la fonction qui
+    // donne la couleur de fond.
+    Color background( const Ray& ray )
+    {
+      Color result = Color( 0.0, 0.0, 0.0 );
+      for ( auto* light : ptrScene->myLights )
+        {
+          Real cos_a = light->direction( ray.origin ).dot( ray.direction );
+          if ( cos_a > 0.99f )
+            {
+              Real a = acos( cos_a ) * 360.0 / M_PI / 8.0;
+              a = std::max( 1.0f - a, 0.0f );
+              result += light->color( ray.origin ) * a * a;
+            }
+        }
+      if ( ptrBackground != 0 ) result += ptrBackground->backgroundColor( ray );
+      return result;
+    }
+
 
     /// The rendering routine for one ray.
     /// @return the color for the given ray.
@@ -123,11 +145,12 @@ namespace rt {
       Color result;
       GraphicalObject* obj_i = 0; // pointer to intersected object
       Point3           p_i;       // point of intersection
-
+      ptrBackground = new MyBackground();
       // Look for intersection in this direction.
       Real ri = ptrScene->rayIntersection( ray, obj_i, p_i );
       // Nothing was intersected
-      if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
+      if ( ri >= 0.0f ) return background( ray ); // background
+      //if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
       // Something was intersected
       //result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
       result = illumination(ray, obj_i, p_i);

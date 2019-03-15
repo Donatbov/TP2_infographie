@@ -82,6 +82,25 @@ namespace rt {
       return *this;
     }
 
+    // Operations between colors
+    Color operator-( Color other ) const
+    {
+      Color tmp( *this );
+      tmp.my_channels[ 0 ] -= other.my_channels[ 0 ];
+      tmp.my_channels[ 1 ] -= other.my_channels[ 1 ];
+      tmp.my_channels[ 2 ] -= other.my_channels[ 2 ];
+      return tmp;
+    }
+
+    // Operations between colors
+    Color& operator-=( Color other )
+    {
+      my_channels[ 0 ] -= other.my_channels[ 0 ];
+      my_channels[ 1 ] -= other.my_channels[ 1 ];
+      my_channels[ 2 ] -= other.my_channels[ 2 ];
+      return *this;
+    }
+
     Color sup( Color other ) const
     {
       other[ 0 ] = std::max( (*this)[ 0 ], other[ 0 ] );
