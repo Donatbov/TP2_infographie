@@ -10,6 +10,7 @@
 #include "Image2D.h"
 #include "Ray.h"
 #include "Background.h"
+#include "Scene.h"
 
 /// Namespace RayTracer
 namespace rt {
@@ -176,6 +177,9 @@ namespace rt {
                 Real coeffSpec = powf(cosBeta, obj->getMaterial(p).shinyness);
                 result += coeffSpec*obj->getMaterial(p).specular*l->color(p);
             }
+
+            // et enfin les ombres
+            result += shadow(Ray(p,l->direction(p)),l->color(p))*l->color(p);
         }
         result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
 
@@ -185,6 +189,32 @@ namespace rt {
     /// Calcule le vecteur réfléchi à W selon la normale N.
     Vector3 reflect( const Vector3& W, Vector3 N ) const{
         return W -2* W.dot(N) * N;
+    }
+
+    /// Calcule la couleur de la lumière (donnée par light_color) dans la
+    /// direction donnée par le rayon. Si aucun objet n'est traversé,
+    /// retourne light_color, sinon si un des objets traversés est opaque,
+    /// retourne du noir, et enfin si les objets traversés sont
+    /// transparents, attenue la couleur.
+    Color shadow( const Ray& ray, Color light_color ){
+        Point3 p = ray.origin;
+        Vector3 l = ray.direction;
+        while(light_color.max() > 0.003f){
+            //on déplace légèrement p vers l
+            p += 0.001f * l;
+            GraphicalObject* object = 0;
+            Point3 p2;
+            //Si intersection
+            if (ptrScene->rayIntersection(ray, object, p2) <= 0.0f){
+                Material m = object->getMaterial(p2);
+                light_color = light_color * m.diffuse * m.coef_refraction;
+                p = p2;
+            }
+            else{
+                break;
+            }
+        }
+        return light_color;
     }
 
   };
