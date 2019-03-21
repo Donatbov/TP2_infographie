@@ -142,20 +142,40 @@ namespace rt {
     /// @return the color for the given ray.
     Color trace( const Ray& ray )
     {
-      assert( ptrScene != 0 );
-      Color result;
-      GraphicalObject* obj_i = 0; // pointer to intersected object
-      Point3           p_i;       // point of intersection
-      ptrBackground = new MyBackground();
-      // Look for intersection in this direction.
-      Real ri = ptrScene->rayIntersection( ray, obj_i, p_i );
-      // Nothing was intersected
-      if ( ri >= 0.0f ) return background( ray ); // background
-      //if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
-      // Something was intersected
-      //result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
-      result = illumination(ray, obj_i, p_i);
-      return result;
+        assert( ptrScene != 0 );
+        ptrBackground = new MyBackground();
+        Color result = Color(0,0,0);
+        GraphicalObject* obj_i = 0;
+        Point3 p_i;
+        Real ri = ptrScene->rayIntersection(ray, obj_i, p_i);
+        // if no intersection
+        if (ri > 0.0f){
+            return background(ray);
+        }
+        // else
+        Material m = obj_i->getMaterial(p_i);
+        if(ray.depth > 0 && m.coef_reflexion != 0){
+            Vector3 vector_refl = reflect(ray.direction,obj_i->getNormal(p_i));
+            Ray ray_refl = Ray(p_i + vector_refl * 0.01f,vector_refl,ray.depth-1);
+            Color c_refl = trace(ray_refl);
+            result += c_refl * m.specular * m.coef_reflexion;
+        }
+        result += illumination(ray, obj_i, p_i);
+        /*
+        Color result;
+        GraphicalObject* obj_i = 0; // pointer to intersected object
+        Point3           p_i;       // point of intersection
+        ptrBackground = new MyBackground();
+        // Look for intersection in this direction.
+        Real ri = ptrScene->rayIntersection( ray, obj_i, p_i );
+        // Nothing was intersected
+        if ( ri >= 0.0f ) return background( ray ); // background
+        //if ( ri >= 0.0f ) return Color( 0.0, 0.0, 0.0 ); // some background color
+        // Something was intersected
+        //result = obj_i->getMaterial(p_i).ambient + obj_i->getMaterial(p_i).diffuse;   // rendu grosssier : on somme la couleur directe et la couleur diffuse de l'objet
+        result = illumination(ray, obj_i, p_i);
+        */
+        return result;
     }
 
     /// Calcule l'illumination de l'objet obj au point p, sachant que l'observateur est le rayon ray.
@@ -179,7 +199,7 @@ namespace rt {
             }
 
             // et enfin les ombres
-            result += shadow(Ray(p,l->direction(p)),l->color(p))*l->color(p);
+            result = result * shadow(Ray(p,l->direction(p)), l->color(p));
         }
         result += obj->getMaterial(p).ambient;    // on ajoute la couleur ambiante
 
@@ -197,15 +217,18 @@ namespace rt {
     /// retourne du noir, et enfin si les objets traversés sont
     /// transparents, attenue la couleur.
     Color shadow( const Ray& ray, Color light_color ){
+
         Point3 p = ray.origin;
-        Vector3 l = ray.direction;
+        GraphicalObject* object = 0; // pointer to the intersected object
+        Point3           p2;         // point of intersection
+
+
         while(light_color.max() > 0.003f){
-            //on déplace légèrement p vers l
-            p += 0.001f * l;
-            GraphicalObject* object = 0;
-            Point3 p2;
+            //on déplace légèrement p vers la source de lumière
+            p += 0.01f * ray.direction;
+            Ray newRay = Ray(p, ray.direction);
             //Si intersection
-            if (ptrScene->rayIntersection(ray, object, p2) <= 0.0f){
+            if (ptrScene->rayIntersection(newRay, object, p2) <= 0){
                 Material m = object->getMaterial(p2);
                 light_color = light_color * m.diffuse * m.coef_refraction;
                 p = p2;
