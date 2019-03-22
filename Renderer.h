@@ -260,15 +260,46 @@ namespace rt {
             tmp = r*c + sqrt(1 - ((r*r) * (1 - (c*c))) );
         }
 
-        Vector3 vRefract = Vector3(r*aRay.direction + tmp * N);
+        Vector3 vRefract = Vector3(r*v + tmp * N);
 
         // Cas de la reflexion totale
         if( 1 - ( (r*r) * (1 - (c*c) )) < 0) {
-            vRefract = reflect(aRay.direction,N);
+            vRefract = reflect(v,N);
         }
 
         return Ray(p + vRefract * 0.01f, vRefract,aRay.depth-1);
     }
+
+    void randomRender( Image2D<Color>& image, int max_depth )
+        {
+          std::cout << "Rendering into image ... might take a while." << std::endl;
+          image = Image2D<Color>( myWidth, myHeight );
+          for ( int y = 0; y < myHeight; ++y )
+          {
+              Real    ty   = (Real) y / (Real)(myHeight-1);
+              progressBar( std::cout, ty, 1.0 );
+              Vector3 dirL = (1.0f - ty) * myDirUL + ty * myDirLL;
+              Vector3 dirR = (1.0f - ty) * myDirUR + ty * myDirLR;
+              dirL        /= dirL.norm();
+              dirR        /= dirR.norm();
+              for ( int x = 0; x < myWidth; ++x )
+              {
+                  Real    tx   = (Real) x / (Real)(myWidth-1);
+                  Vector3 dir  = (1.0f - tx) * dirL + tx * dirR;
+                  Ray eye_ray  = Ray( myOrigin, dir, max_depth );
+
+                  Color moyenne = Color( 0, 0, 0 );
+                  Real ecart = 1.0;
+                  for (int i = 1; i<=10 || (ecart <= 0.1 && i>5); i++){
+                      Color result = trace( eye_ray );
+                      moyenne += Color((moyenne.r() * i-1 + result.r()) / i, (moyenne.g() * i-1 + result.g()) / i, (moyenne.b() * i-1 + result.b()) / i);
+                      ecart = (moyenne - result).max();
+                  }
+                  image.at( x, y ) = moyenne.clamp();
+              }
+          }
+          std::cout << "Done." << std::endl;
+        }
 
   };
 
