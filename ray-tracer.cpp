@@ -12,14 +12,24 @@
 using namespace std;
 using namespace rt;
 
+void addBubble( Scene& scene, Point3 c, Real r, Material transp_m )
+{
+    Material revert_m = transp_m;
+    std::swap( revert_m.in_refractive_index, revert_m.out_refractive_index );
+    Sphere* sphere_out = new Sphere( c, r, transp_m );
+    Sphere* sphere_in  = new Sphere( c, r-0.02f, revert_m );
+    scene.addObject( sphere_out );
+    scene.addObject( sphere_in );
+}
+
 int main(int argc, char** argv)
 {
   // Read command lines arguments.
   QApplication application(argc,argv);
-  
+
   // Creates a 3D scene
   Scene scene;
-  
+
   // Light at infinity
   Light* light0 = new PointLight( GL_LIGHT0, Point4( 0,0,1,0 ),
                                     Color( 1.0, 1.0, 1.0 ) );
@@ -35,6 +45,8 @@ int main(int argc, char** argv)
   scene.addObject( sphere2 );
   scene.addObject( sphere3 );
 
+  addBubble( scene, Point3( -5, 4, -1 ), 2.0, Material::glass() );
+
   // Instantiate the viewer.
   Viewer viewer;
   // Give a name
@@ -49,3 +61,4 @@ int main(int argc, char** argv)
   application.exec();
   return 0;
 }
+
